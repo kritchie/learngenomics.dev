@@ -44,12 +44,18 @@ function useCollapsed() {
  */
 export default function GuideBand() {
   const { pathname } = useLocation();
-  const { chapters, pages } = useGuideMap();
+  const { chapters, pages, quizzes } = useGuideMap();
   const readPages = useReadPages();
   const [collapsed, toggleCollapsed] = useCollapsed();
-  const current = pages.find(
-    (page) => trimSlash(page.permalink) === trimSlash(pathname)
-  );
+  const here = (item) => trimSlash(item.permalink) === trimSlash(pathname);
+  const current = pages.find(here);
+  // Quizzes have no slice; on one, the band marks its chapter instead.
+  const currentQuiz = !current && quizzes.find(here);
+  const currentChapter = current
+    ? current.chapterIndex
+    : currentQuiz
+    ? currentQuiz.chapterIndex
+    : undefined;
 
   if (chapters.length === 0) return null;
 
@@ -113,7 +119,7 @@ export default function GuideBand() {
 
           <ol id="guide-band-labels" className={styles.labels}>
             {chapters.map((chapter, index) => {
-              const here = current && current.chapterIndex === index;
+              const here = currentChapter === index;
               const time = formatMinutes(chapter.minutes);
               return (
                 <li
@@ -158,6 +164,21 @@ export default function GuideBand() {
                 {current.number}/{pages.length}
               </span>
               <span className={styles.minutes}>{current.minutes} min read</span>
+            </p>
+          )}
+          {currentQuiz && (
+            <p className={styles.position}>
+              <span className={styles.long}>
+                {currentQuiz.chapterIndex === undefined
+                  ? "Final quiz"
+                  : "Chapter quiz"}
+              </span>
+              <span className={styles.short} aria-hidden="true">
+                Quiz
+              </span>
+              <span className={styles.minutes}>
+                {currentQuiz.questions} questions
+              </span>
             </p>
           )}
           <button

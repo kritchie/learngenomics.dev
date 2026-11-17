@@ -56,19 +56,42 @@ module.exports = function guideMap(context) {
         };
       };
 
+      // Quiz pages (front matter `quiz: true`) are checkpoints, not reading:
+      // they stay out of `pages`, word counts and reading times.
+      const isQuiz = (id) => Boolean(docsById.get(id)?.frontMatter.quiz);
+      const quiz = (id) => {
+        const doc = docsById.get(id);
+        const file = path.join(
+          context.siteDir,
+          doc.source.replace(/^@site\//, "")
+        );
+        const source = fs.readFileSync(file, "utf8");
+        return {
+          id,
+          title: doc.title,
+          permalink: doc.permalink,
+          questions: (source.match(/<Question[\s>]/g) || []).length,
+        };
+      };
+
       const [sidebar] = Object.values(version.sidebars);
+      const finalQuizItem = sidebar.find(
+        (item) => item.type === "doc" && isQuiz(item.id)
+      );
       const chapters = sidebar
         .filter((item) => item.type === "category")
         .map((category) => {
           // Nested categories (such as Types of Sequencing) are flattened
           // into their chapter, in reading order.
           const ids = [];
+          const quizIds = [];
           const collect = (cat, section) => {
             if (cat.link && cat.link.type === "doc") {
               ids.push({ id: cat.link.id, section });
             }
             cat.items.forEach((item) => {
-              if (item.type === "doc") ids.push({ id: item.id, section });
+              if (item.type === "doc" && isQuiz(item.id)) quizIds.push(item.id);
+              else if (item.type === "doc") ids.push({ id: item.id, section });
               else if (item.type === "category") collect(item, item.label);
             });
           };
@@ -78,6 +101,7 @@ module.exports = function guideMap(context) {
           return {
             label: category.label,
             pages,
+            ...(quizIds.length > 0 && { quiz: quiz(quizIds[0]) }),
             words,
             // Rounded to 5 minutes; a chapter estimate shouldn't look precise.
             minutes: Math.max(
@@ -89,6 +113,7 @@ module.exports = function guideMap(context) {
 
       actions.setGlobalData({
         chapters,
+        finalQuiz: finalQuizItem ? quiz(finalQuizItem.id) : null,
         totalPages: chapters.reduce((sum, c) => sum + c.pages.length, 0),
         totalWords: chapters.reduce((sum, c) => sum + c.words, 0),
       });

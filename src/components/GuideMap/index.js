@@ -8,6 +8,7 @@ import {
   useGuideMap,
   useReadPages,
 } from "@site/src/components/GuideMap/progress";
+import { clearScores, useQuizScores } from "@site/src/components/Quiz/scores";
 import styles from "./styles.module.css";
 
 /**
@@ -21,8 +22,21 @@ import styles from "./styles.module.css";
  * the target-size rule only.
  */
 export default function GuideMap({ nextPageId }) {
-  const { chapters, pages, totalWords } = useGuideMap();
+  const { chapters, pages, totalWords, finalQuiz } = useGuideMap();
   const readPages = useReadPages();
+  const scores = useQuizScores();
+  const hasProgress = readPages.size > 0 || Object.keys(scores).length > 0;
+  const resetProgress = () => {
+    clearReadPages();
+    clearScores();
+  };
+  /** "8 of 10" once taken, otherwise the question count. */
+  const quizStatus = (quiz) => {
+    const saved = scores[quiz.id];
+    return saved
+      ? { text: `best ${saved.best}/${saved.total}`, label: `, best score ${saved.best} of ${saved.total}` }
+      : { text: `${quiz.questions} questions`, label: `, ${quiz.questions} questions` };
+  };
   const [open, setOpen] = useState(() => new Set());
   const toggle = (label) =>
     setOpen((was) => {
@@ -164,11 +178,43 @@ export default function GuideMap({ nextPageId }) {
                     </li>
                   );
                 })}
+                {chapter.quiz && (
+                  <li>
+                    <Link
+                      to={chapter.quiz.permalink}
+                      className={clsx(
+                        styles.pageLink,
+                        styles.quizLink,
+                        scores[chapter.quiz.id] && styles.read
+                      )}
+                    >
+                      <span className={styles.pageTitle}>Chapter quiz</span>
+                      <span className={styles.pageMinutes} aria-hidden="true">
+                        {quizStatus(chapter.quiz).text}
+                      </span>
+                      <span className={styles.srOnly}>
+                        {quizStatus(chapter.quiz).label}
+                      </span>
+                    </Link>
+                  </li>
+                )}
               </ol>
             </li>
           );
         })}
       </ol>
+
+      {finalQuiz && (
+        <p className={styles.finalQuiz}>
+          <Link to={finalQuiz.permalink} className={styles.finalQuizLink}>
+            Final quiz
+            <span className={styles.srOnly}>{quizStatus(finalQuiz).label}</span>
+          </Link>
+          <span className={styles.finalQuizStatus} aria-hidden="true">
+            {quizStatus(finalQuiz).text}
+          </span>
+        </p>
+      )}
 
       <div className={styles.legend}>
         <span>
@@ -184,15 +230,15 @@ export default function GuideMap({ nextPageId }) {
           Not yet
         </span>
         <p className={styles.note}>
-          Each bar is one page, sized by its word count. Progress is saved only
-          in this browser.
-          {readPages.size > 0 && (
+          Each bar is one page, sized by its word count. Progress and quiz
+          scores are saved only in this browser.
+          {hasProgress && (
             <>
               {" "}
               <button
                 type="button"
                 className={styles.reset}
-                onClick={clearReadPages}
+                onClick={resetProgress}
               >
                 Reset progress
               </button>

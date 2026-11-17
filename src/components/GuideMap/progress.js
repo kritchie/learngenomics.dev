@@ -82,6 +82,14 @@ export function useGuideMap() {
       )
     );
     const totalWords = pages.reduce((sum, page) => sum + page.words, 0);
-    return { chapters, pages, totalWords };
+    // Chapter quizzes carry their chapter's index; the final quiz has none.
+    const quizzes = chapters
+      .map((chapter, chapterIndex) =>
+        chapter.quiz ? { ...chapter.quiz, chapterIndex } : null
+      )
+      .filter(Boolean);
+    const finalQuiz = (data && data.finalQuiz) || null;
+    if (finalQuiz) quizzes.push(finalQuiz);
+    return { chapters, pages, totalWords, quizzes, finalQuiz };
   }, [data]);
 }

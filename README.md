@@ -123,6 +123,44 @@ Draw every figure for a white page. The build makes a dark-mode copy of each SVG
 matches the theme. See [`scripts/README.md`](scripts/README.md#dark-mode) for how to
 steer the dark copy.
 
+### Quizzes
+
+Each chapter ends with a `quiz.md`, and `docs/final-quiz.md` closes the guide. A quiz
+page sets `quiz: true` in its front matter, which keeps it out of the page count and
+reading times and shows it as a checkpoint on the guide map. The quiz components need
+no import:
+
+```mdx
+<Quiz>
+
+<Question>
+
+Which molecule carries a gene's message to the ribosome?
+
+<Option>DNA</Option>
+<Option correct>mRNA</Option>
+
+<Explanation>
+
+Why, then a link to the section it draws on. See
+[Transcription](03-transcription.md#how-transcription-works).
+
+</Explanation>
+</Question>
+
+</Quiz>
+```
+
+- Single choice is the default and needs exactly one `<Option correct>`.
+- `<Question multiple>` asks the reader to select all that apply. It needs at least one
+  correct option.
+- `<Question answer={true}>` (or `{false}`) is true/false and takes no options.
+- Every question needs one `<Explanation>`. Keep each `<Option>` on one line, and keep
+  the blank lines around Markdown inside the components.
+
+`npm run build` fails on a malformed question. Answers are checked in the browser, and
+scores are saved only in the reader's browser.
+
 ### Style
 
 - Write for a newcomer to biology, in plain prose.

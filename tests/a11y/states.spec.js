@@ -70,3 +70,20 @@ test("home page guide map chapter expanded", async ({ page }, testInfo) => {
   await expect(page.locator("#" + (await toggle.getAttribute("aria-controls")))).toBeVisible();
   await scan(page, testInfo, "chapter expanded");
 });
+
+test("chapter quiz answered", async ({ page }, testInfo) => {
+  await page.goto("/docs/biological-foundations/quiz");
+  const questions = page.locator('[role="group"][aria-labelledby$="-prompt"]');
+  const count = await questions.count();
+  expect(count).toBeGreaterThan(0);
+  // Answer every question with its first choice, so the page shows both
+  // right and wrong feedback, the explanations and the final score.
+  for (let i = 0; i < count; i += 1) {
+    const question = questions.nth(i);
+    await question.locator("input").first().check();
+    await question.getByRole("button", { name: "Check answer" }).click();
+    await expect(question.getByText(/^(Correct\.|Not quite\.)$/)).toBeVisible();
+  }
+  await expect(page.getByText(/^You scored \d+ of \d+\.$/)).toBeVisible();
+  await scan(page, testInfo, "answered");
+});

@@ -392,3 +392,32 @@
     transition: none;
   }
 }
+
+/* ---------- Quizzes ---------- */
+
+/* A diamond marks a quiz in a chapter's page list; it fills once taken. */
+.quizLink::before {
+  width: 8px;
+  height: 8px;
+  margin: 0 2px;
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
+.finalQuiz {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 1rem 0 0 var(--label-width);
+  font-size: 0.9375rem;
+}
+
+.finalQuizLink {
+  font-weight: 600;
+}
+
+.finalQuizStatus {
+  color: var(--lg-text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}

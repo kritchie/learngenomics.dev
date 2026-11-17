@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import useBrokenLinks from "@docusaurus/useBrokenLinks";
 import MDXComponents from "@theme-original/MDXComponents";
+import {
+  Explanation,
+  Option,
+  Question,
+  Quiz,
+} from "@site/src/components/Quiz";
 
 /**
  * A Markdown table that joins the tab order only when it scrolls sideways, so
@@ -29,4 +35,12 @@ function Figure(props) {
   return <figure {...props} />;
 }
 
-export default { ...MDXComponents, table: Table, figure: Figure };
+export default {
+  ...MDXComponents,
+  table: Table,
+  figure: Figure,
+  Quiz,
+  Question,
+  Option,
+  Explanation,
+};
